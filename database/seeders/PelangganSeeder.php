@@ -15,10 +15,10 @@ class PelangganSeeder extends Seeder
      */
     public function run()
     {
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 11; $i < 200; $i++) {
             $prefix = "SVN";
             $timestamp = now()->format('YmdHis');
-            $randomNumber = rand(1000, 9999);
+            $randomNumber = rand(100000000000, 999999999999);
             $serviceNumber = $randomNumber;
 
             // Create Pelanggan record
@@ -28,7 +28,7 @@ class PelangganSeeder extends Seeder
                 'name'              => 'Customer ' . $i,
                 'telp'              => '0812345678' . $i,
                 'email'             => 'customer' . $i . '@example.com',
-                'status_tagihan'    => 'Lunas',
+                'status_tagihan'    => 'Aktif',
                 'server_id'         => rand(1, 3), // ID server secara acak
                 'cluster_id'        => rand(1, 3), // ID cluster secara acak
                 'paket_internet_id' => rand(1, 3), // ID paket internet secara acak

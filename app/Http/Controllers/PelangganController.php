@@ -17,36 +17,50 @@ class PelangganController extends Controller
 {
     public function index(Request $request)
     {
-        $pelanggan = Pelanggan::with('server','paket')->where('company_id',Auth::user()->company_id)->get();
+        // $query = Pelanggan::with(['server', 'paket'])->where("company_id","=",Auth::user()->id);
+        $query = Pelanggan::with(['server:id,lokasi_server', 'paket:id,nm_paket,harga'])
+            ->select('id','name','nomor_layanan','alamat','telp','status_tagihan','server_id','paket_internet_id')
+            ->where("company_id","=",Auth::user()->id);
         if ($request->filled('paket')) {
-            $pelanggan->whereHas('paket', function ($q) use ($request) {
+            $query->whereHas('paket', function ($q) use ($request) {
                 $q->where('paket_internet_id', $request->input('paket'));
             });
         }
         if ($request->filled('server')) {
-            $pelanggan->whereHas('server', function ($q) use ($request) {
+            $query->whereHas('server', function ($q) use ($request) {
                 $q->where('server_id', $request->input('server'));
             });
         }
         if ($request->filled('cluster')) {
-            $pelanggan->whereHas('cluster', function ($q) use ($request) {
+            $query->whereHas('cluster', function ($q) use ($request) {
                 $q->where('cluster_id', $request->input('cluster'));
             });
         }
         if ($request->filled('kecamatan')) {
-            $pelanggan->where('kecamatan', $request->input('kecamatan'));
+            $query->where('kecamatan', $request->input('kecamatan'));
         }
         if ($request->filled('desa')) {
-            $pelanggan->where('desa', $request->input('desa'));
+            $query->where('desa', $request->input('desa'));
         }
         if ($request->filled('status')) {
-            $pelanggan->where('status_tagihan', $request->input('status'));
+            $query->where('status_tagihan', $request->input('status'));
         }
-
-        // Fetch the results and return them as JSON
-        return response()->json($pelanggan->get(),200);
-
+        if ($request->has('Ya') && $request->input('Ya') === 'true') {
+            $query->whereMonth('created_at', now()->month)
+                  ->whereYear('created_at', now()->year);
+        }
+        if ($request->filled('search')) {
+            $searchTerm = $request->input('search');
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('nomor_layanan', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('telp', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('alamat', 'LIKE', "%{$searchTerm}%");
+            });
+        }
+        return response()->json($query->get(),200);
     }
+
     public function details($id)
     {
         $pelanggan = Pelanggan::with('cluster','server','paket','diskon','biayatambahan')->findOrFail($id);
